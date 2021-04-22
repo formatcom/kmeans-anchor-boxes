@@ -5,24 +5,37 @@ import numpy as np
 
 from kmeans import kmeans, avg_iou
 
-ANNOTATIONS_PATH = "../New/annotation/lego4"
+ANNOTATIONS_PATH = "../dataset/wider_train_annotations"
+
 CLUSTERS = 5
+WIDTH = 224
+HEIGHT = 224
+INPUT_SIZE = 224 * 2
+STRIP_SIZE = 32
+
+
+grid_w = INPUT_SIZE/STRIP_SIZE
+grid_h = INPUT_SIZE/STRIP_SIZE
 
 def load_dataset(path):
     dataset = []
     for xml_file in glob.glob("{}/*xml".format(path)):
         tree = ET.parse(xml_file)
 
-        height = int(tree.findtext("./size/height"))
-        width = int(tree.findtext("./size/width"))
+        img_width = int(tree.findtext("./size/width"))
+        img_height = int(tree.findtext("./size/height"))
+
+        cell_w = img_width/grid_w
+        cell_h = img_height/grid_h
 
         i = 0
         for obj in tree.iter("object"):
             i += 1
-            xmin = int(obj.findtext("bndbox/xmin"))*1.0 / width
-            ymin = int(obj.findtext("bndbox/ymin"))*1.0 / height
-            xmax = int(obj.findtext("bndbox/xmax"))*1.0 / width
-            ymax = int(obj.findtext("bndbox/ymax"))*1.0 / height
+            xmin = int(obj.findtext("bndbox/xmin"))*1.0 / cell_w
+            ymin = int(obj.findtext("bndbox/ymin"))*1.0 / cell_h
+            xmax = int(obj.findtext("bndbox/xmax"))*1.0 / cell_w
+            ymax = int(obj.findtext("bndbox/ymax"))*1.0 / cell_h
+
             if xmin==xmax or ymin==ymax:
                 print("you need to check obj[{}] {}".format(i, xml_file))
                 continue
